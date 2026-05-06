@@ -1,0 +1,109 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="소스 파일">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;c++;cppm;ixx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="리소스 파일">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="소스 파일\RenderingPipeline">
+      <UniqueIdentifier>{a4214877-a3bd-4a37-af6f-7ddf42f44dd5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="소스 파일\Utils">
+      <UniqueIdentifier>{bcb923b1-faa6-4b42-aa2f-0248e2e70c64}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="소스 파일\Utils\Init">
+      <UniqueIdentifier>{04ad5b8b-191c-4d0c-b8c4-60f7771db152}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="소스 파일\Utils\ReadSource">
+      <UniqueIdentifier>{58d57628-5594-4f98-a2f8-b399cc1d4514}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="소스 파일\RenderingPipeline\Shader">
+      <UniqueIdentifier>{9fbf0511-0597-4906-b859-39fe9653ebd8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="소스 파일\RenderingPipeline\Program">
+      <UniqueIdentifier>{e568ad0d-d92b-4de5-9c00-d620501eb7ef}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="소스 파일\glsl">
+      <UniqueIdentifier>{327f3ba4-8e43-469f-a0bf-4090ada25459}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="소스 파일\RenderingPipeline\Mesh">
+      <UniqueIdentifier>{649844f1-0dac-4638-9d23-b96779d0718c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="소스 파일\RenderingPipeline\Model">
+      <UniqueIdentifier>{7128ac15-1e70-4621-8b5f-220864bde34b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="소스 파일\RenderingPipeline\Cam">
+      <UniqueIdentifier>{bd20da46-c96e-4bb6-a678-b52b5fa5487f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="소스 파일\HalfEdge">
+      <UniqueIdentifier>{886f1e2a-0d77-4605-81a9-1d39b52dfe25}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="OpenGLInit.cpp">
+      <Filter>소스 파일\Utils\Init</Filter>
+    </ClCompile>
+    <ClCompile Include="Shader.cpp">
+      <Filter>소스 파일\RenderingPipeline\Shader</Filter>
+    </ClCompile>
+    <ClCompile Include="main.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="Program.cpp">
+      <Filter>소스 파일\RenderingPipeline\Program</Filter>
+    </ClCompile>
+    <ClCompile Include="Mesh.cpp">
+      <Filter>소스 파일\RenderingPipeline\Mesh</Filter>
+    </ClCompile>
+    <ClCompile Include="Model.cpp">
+      <Filter>소스 파일\RenderingPipeline\Model</Filter>
+    </ClCompile>
+    <ClCompile Include="HalfEdge.cpp">
+      <Filter>소스 파일\HalfEdge</Filter>
+    </ClCompile>
+    <ClCompile Include="Cam.cpp">
+      <Filter>소스 파일\RenderingPipeline\Cam</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="FragmentShader.glsl">
+      <Filter>소스 파일\glsl</Filter>
+    </None>
+    <None Include="VertexShader.glsl">
+      <Filter>소스 파일\glsl</Filter>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="OpenGLInit.h">
+      <Filter>소스 파일\Utils\Init</Filter>
+    </ClInclude>
+    <ClInclude Include="Shader.h">
+      <Filter>소스 파일\RenderingPipeline\Shader</Filter>
+    </ClInclude>
+    <ClInclude Include="ReadSource.h">
+      <Filter>소스 파일\Utils\ReadSource</Filter>
+    </ClInclude>
+    <ClInclude Include="Program.h">
+      <Filter>소스 파일\RenderingPipeline\Program</Filter>
+    </ClInclude>
+    <ClInclude Include="Mesh.h">
+      <Filter>소스 파일\RenderingPipeline\Mesh</Filter>
+    </ClInclude>
+    <ClInclude Include="Model.h">
+      <Filter>소스 파일\RenderingPipeline\Model</Filter>
+    </ClInclude>
+    <ClInclude Include="HalfEdge.h">
+      <Filter>소스 파일\HalfEdge</Filter>
+    </ClInclude>
+    <ClInclude Include="TriMeshTypes.h">
+      <Filter>소스 파일\HalfEdge</Filter>
+    </ClInclude>
+    <ClInclude Include="Cam.h">
+      <Filter>소스 파일\RenderingPipeline\Cam</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>

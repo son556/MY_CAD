@@ -1,0 +1,22 @@
+*.stl
+x64/
+resources/
+
+# Visual Studio IDE files (large cache, not needed in repo)
+.vs/
+
+# Build output
+Debug/
+Release/
+*.obj
+*.pch
+*.ipch
+*.pdb
+*.ilk
+*.exp
+
+# Visual Studio user-specific files
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
