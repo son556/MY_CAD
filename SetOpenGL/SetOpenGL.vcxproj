@@ -69,7 +69,11 @@
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
-  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Label="UserMacros">
+    <VcpkgRoot Condition="'$(VcpkgRoot)' == ''">$(VCPKG_ROOT)</VcpkgRoot>
+    <VcpkgRoot Condition="'$(VcpkgRoot)' == ''">C:\vcpkg</VcpkgRoot>
+    <VcpkgStatic>$(VcpkgRoot)\installed\x64-windows-static</VcpkgStatic>
+  </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
@@ -102,13 +106,14 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(ProjectDir)include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)include;$(VcpkgStatic)\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>user32.lib;gdi32.lib;shell32.lib;opengl32.lib;glfw3.lib;glew32.lib;assimp-vc143-mtd.lib</AdditionalDependencies>
-      <AdditionalLibraryDirectories>$(ProjectDir)lib;$(ProjectDir)dll;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>user32.lib;gdi32.lib;shell32.lib;advapi32.lib;opengl32.lib;glfw3_mt.lib;glew32.lib;assimp-vc143-mtd.lib;poly2tri.lib;minizip.lib;pugixml.lib;kubazip.lib;polyclipping.lib;zsd.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(ProjectDir)lib;$(ProjectDir)dll;$(VcpkgStatic)\debug\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
     <PostBuildEvent>
       <Command>xcopy /y /d "$(ProjectDir)dll\*.dll" "$(OutDir)"</Command>
@@ -122,13 +127,14 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(ProjectDir)include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)include;$(VcpkgStatic)\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(ProjectDir)lib;$(ProjectDir)dll;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>user32.lib;gdi32.lib;shell32.lib;opengl32.lib;glfw3.lib;glew32.lib;assimp-vc143-mt.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(ProjectDir)lib;$(ProjectDir)dll;$(VcpkgStatic)\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>user32.lib;gdi32.lib;shell32.lib;advapi32.lib;opengl32.lib;glfw3_mt.lib;glew32.lib;assimp-vc143-mt.lib;poly2tri.lib;minizip.lib;pugixml.lib;kubazip.lib;polyclipping.lib;zs.lib</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
       <Command>xcopy /y /d "$(ProjectDir)dll\*.dll" "$(OutDir)"</Command>

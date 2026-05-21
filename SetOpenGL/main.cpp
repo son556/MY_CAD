@@ -41,7 +41,7 @@ int main()
     1, 2, 3    // 두 번째 삼각형
     };
 
-    Model model("./resource/mandibular2.stl");
+    Model model("./Resources/mandibular2.stl");
 
     //Mesh obj(vertices, sizeof(vertices), indices, sizeof(indices));
     Mesh obj(model.GetVertices().data(), model.GetVertices().size() * sizeof(float), model.GetIndices().data(), model.GetIndices().size() * sizeof(unsigned int));
