@@ -275,7 +275,14 @@ void HalfEdge::SplitEdge(size_t edgeIdx, float t) // a -> b -> c
     _vertexHalfEdges.push_back(_halfEdges.size());
     
     bool oppositeflag = false;
-    if (_halfEdges[h.oppositeHalfEdge].faceIndex != -1) oppositeflag = true;
+    halfedge_t* halfEdgeBtoD;
+    halfedge_t* halfEdgeDtoC;
+    if (_halfEdges[h.oppositeHalfEdge].faceIndex != -1)
+    {
+        halfEdgeBtoD = &(_halfEdges[_halfEdges[h.oppositeHalfEdge].nextHlafEdge]);
+        halfEdgeDtoC = &(_halfEdges[halfEdgeBtoD->nextHlafEdge]);
+        oppositeflag = true;
+    }
 
     { // edge 정리
         _edgeHalfEdges.push_back(_halfEdges.size() - 6);
@@ -351,15 +358,19 @@ void HalfEdge::SplitEdge(size_t edgeIdx, float t) // a -> b -> c
 
         if (oppositeflag)
         {
-
+            halfEdgeBtoD->nextHlafEdge = _halfEdges.size() + 5;
+            halfEdgeDtoC->nextHlafEdge = _halfEdges.size() + 3;
         }
 
         _halfEdges.push_back(newHalfEdgeMtoA);
         _halfEdges.push_back(newHalfEdgeAtoM);
         _halfEdges.push_back(newHalfEdgeMtoC);
         _halfEdges.push_back(newHalfEdgeCtoM);
-        _halfEdges.push_back(newHalfEdgeMtoD);
-        _halfEdges.push_back(newHalfEdgeDtoM);
+        if (oppositeflag)
+        {
+            _halfEdges.push_back(newHalfEdgeMtoD);
+            _halfEdges.push_back(newHalfEdgeDtoM);
+        }
     }
 }
 
