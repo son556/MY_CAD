@@ -155,6 +155,12 @@ void HalfEdge::Build(
 void HalfEdge::GetBoundaryVertices(size_t boundaryVertexIndex, std::vector<size_t>& outBoundaryVertexIndices) const
 {
     size_t hei = _vertexHalfEdges[boundaryVertexIndex];
+    if (IsBoundaryVertex(boundaryVertexIndex) == false)
+        return;
+
+    if (_halfEdges[hei].faceIndex != INVALID_INDEX)
+        hei = _halfEdges[hei].oppositeHalfEdge;
+
     size_t start = hei;
     outBoundaryVertexIndices.push_back(boundaryVertexIndex);
 
@@ -262,115 +268,180 @@ glm::vec3 HalfEdge::GetFaceNormal(size_t faceIndex) const
 }
 
 
-void HalfEdge::SplitEdge(size_t edgeIdx, float t) // a -> b -> c
+void HalfEdge::SplitEdge(size_t edgeIdx, float t)
 {
-    halfedge_t& h = _halfEdges[_edgeHalfEdges[edgeIdx]];
-    size_t fromVertex = _halfEdges[h.oppositeHalfEdge].toVertex;
-    size_t oppositeEdgeVertex = _halfEdges[_halfEdges[_edgeHalfEdges[edgeIdx]].nextHlafEdge].toVertex;
+    _halfEdges.reserve(_halfEdges.size() + 6);
+    _edgeHalfEdges.reserve(_edgeHalfEdges.size() + 3);
+    _faceHalfEdges.reserve(_faceHalfEdges.size() + 2);
 
-    size_t newVertexIdx = _points.size(); // m
-    _points.push_back(t * _points[fromVertex] + (1 - t) * _points[h.toVertex]);
+    halfedge_t& halfEdgeBtoC = _halfEdges[_edgeHalfEdges[edgeIdx]];
+    halfedge_t& halfEdgeCtoB = _halfEdges[halfEdgeBtoC.oppositeHalfEdge];
 
-    size_t startVertexIdx = h.toVertex;
-    _vertexHalfEdges.push_back(_halfEdges.size());
-    
-    bool oppositeflag = false;
-    halfedge_t* halfEdgeBtoD;
-    halfedge_t* halfEdgeDtoC;
-    if (_halfEdges[h.oppositeHalfEdge].faceIndex != -1)
+    size_t nextCtoBHalfEdgeIdx = halfEdgeCtoB.nextHlafEdge;
+
+    size_t halfEdgesSize = _halfEdges.size();
+    size_t edgeHalfEdgesSize = _edgeHalfEdges.size();
+    size_t faceHalfEdgesSize = _faceHalfEdges.size();
+    size_t vertexHalfEdgesSize = _vertexHalfEdges.size();
+
+    halfedge_t* halfEdgeAtoB = nullptr;
+    halfedge_t* halfEdgeCtoA = nullptr;
+    halfedge_t* halfEdgeBtoD = nullptr;
+    halfedge_t* halfEdgeDtoC = nullptr;
+    halfedge_t newHalfEdgeBtoM;
+    halfedge_t newHalfEdgeMtoB;
+    halfedge_t newHalfEdgeMtoA;
+    halfedge_t newHalfEdgeAtoM;
+    halfedge_t& halfEdgeMtoC = halfEdgeBtoC;
+    halfedge_t& halfEdgeCtoM = halfEdgeCtoB;
+
+    _points.push_back(t * _points[halfEdgeCtoB.toVertex] + (1 - t) * _points[halfEdgeBtoC.toVertex]);
+    _vertexHalfEdges.push_back(_edgeHalfEdges[edgeIdx]);
+
+    bool aFlag = false;
+    if (halfEdgeBtoC.faceIndex != INVALID_INDEX)
     {
-        halfEdgeBtoD = &(_halfEdges[_halfEdges[h.oppositeHalfEdge].nextHlafEdge]);
-        halfEdgeDtoC = &(_halfEdges[halfEdgeBtoD->nextHlafEdge]);
-        oppositeflag = true;
-    }
+        aFlag = true;
+        halfEdgeCtoA = &(_halfEdges[halfEdgeBtoC.nextHlafEdge]);
+        halfEdgeAtoB = &(_halfEdges[halfEdgeCtoA->nextHlafEdge]);
+        
+        // face
+        _faceHalfEdges[halfEdgeBtoC.faceIndex] = halfEdgeBtoC.nextHlafEdge;
+        _faceHalfEdges.push_back(halfEdgeCtoA->nextHlafEdge);
 
-    { // edge 정리
-        _edgeHalfEdges.push_back(_halfEdges.size() - 6);
-        _edgeHalfEdges.push_back(_halfEdges.size() - 4);
-        if (oppositeflag)
-            _edgeHalfEdges.push_back(_halfEdges.size() - 2);
-    }
+        // edge
+        _edgeHalfEdges[edgeIdx] = halfEdgesSize;
+        _edgeHalfEdges.push_back(halfEdgesSize + 3);
+        _edgeHalfEdges.push_back(halfEdgeBtoC.oppositeHalfEdge);
 
-    { // face 정리
-        if (_halfEdges[_faceHalfEdges[h.faceIndex]].toVertex == oppositeEdgeVertex)
-            _faceHalfEdges[h.faceIndex] = _halfEdges.size() - 6;
-        _faceHalfEdges.push_back(_halfEdges.size() - 5);
-        if (oppositeflag)
-        {
-            if (_halfEdges[_faceHalfEdges[_halfEdges[h.oppositeHalfEdge].faceIndex]].toVertex == _halfEdges[_halfEdges[h.oppositeHalfEdge].oppositeHalfEdge].toVertex)
-                _faceHalfEdges[_halfEdges[h.oppositeHalfEdge].faceIndex] = _halfEdges.size() - 1;
-            _faceHalfEdges.push_back(_halfEdges.size() - 2);
-        }
-    }
+        // halfedge
+        halfEdgeAtoB->faceIndex = faceHalfEdgesSize;
+        halfEdgeAtoB->nextHlafEdge = halfEdgesSize;
 
-    { // half edge 만들기
+        newHalfEdgeBtoM.edgeIndex = edgeIdx;
+        newHalfEdgeBtoM.faceIndex = faceHalfEdgesSize;
+        newHalfEdgeBtoM.nextHlafEdge = halfEdgesSize + 2;
+        newHalfEdgeBtoM.oppositeHalfEdge = halfEdgesSize + 1;
+        newHalfEdgeBtoM.toVertex = vertexHalfEdgesSize;
 
-        halfedge_t newHalfEdgeMtoA;
-        newHalfEdgeMtoA.edgeIndex = _edgeHalfEdges.size();
-        newHalfEdgeMtoA.faceIndex = h.faceIndex;
-        newHalfEdgeMtoA.nextHlafEdge = _halfEdges[h.nextHlafEdge].nextHlafEdge;
-        newHalfEdgeMtoA.oppositeHalfEdge = _halfEdges.size() + 1;
-        newHalfEdgeMtoA.toVertex = oppositeEdgeVertex;
+        newHalfEdgeMtoA.edgeIndex = edgeHalfEdgesSize;
+        newHalfEdgeMtoA.faceIndex = faceHalfEdgesSize;
+        newHalfEdgeMtoA.nextHlafEdge = halfEdgeCtoA->nextHlafEdge;
+        newHalfEdgeMtoA.oppositeHalfEdge = halfEdgesSize + 3;
+        newHalfEdgeMtoA.toVertex = halfEdgeCtoA->toVertex;
 
-        halfedge_t newHalfEdgeAtoM;
-        newHalfEdgeAtoM.edgeIndex = _edgeHalfEdges.size();
-        newHalfEdgeAtoM.faceIndex = _faceHalfEdges.size();
-        newHalfEdgeAtoM.nextHlafEdge = _halfEdges.size() + 2;
-        newHalfEdgeAtoM.oppositeHalfEdge = _halfEdges.size();
-        newHalfEdgeAtoM.toVertex = newVertexIdx;
+        newHalfEdgeAtoM.edgeIndex = edgeHalfEdgesSize;
+        newHalfEdgeAtoM.faceIndex = halfEdgeBtoC.faceIndex;
+        newHalfEdgeAtoM.nextHlafEdge = halfEdgeCtoB.oppositeHalfEdge;
+        newHalfEdgeAtoM.oppositeHalfEdge = halfEdgesSize + 2;
+        newHalfEdgeAtoM.toVertex = vertexHalfEdgesSize;
 
-        halfedge_t newHalfEdgeMtoC;
-        newHalfEdgeMtoC.edgeIndex = _edgeHalfEdges.size() + 1;
-        newHalfEdgeMtoC.faceIndex = _faceHalfEdges.size();
-        newHalfEdgeMtoC.nextHlafEdge = h.nextHlafEdge;
-        newHalfEdgeMtoC.oppositeHalfEdge = _halfEdges.size() + 3;
-        newHalfEdgeMtoC.toVertex = h.toVertex;
+        halfEdgeCtoA->nextHlafEdge = halfEdgesSize + 3;
 
-        halfedge_t newHalfEdgeCtoM;
-        newHalfEdgeCtoM.edgeIndex = _edgeHalfEdges.size() + 1;
-        newHalfEdgeCtoM.faceIndex = _halfEdges[h.oppositeHalfEdge].faceIndex == -1 ? -1 : _faceHalfEdges.size() + 1;
-        newHalfEdgeCtoM.nextHlafEdge = _halfEdges[h.oppositeHalfEdge].faceIndex == -1 ? h.oppositeHalfEdge : _halfEdges.size() + 4;
-        newHalfEdgeCtoM.oppositeHalfEdge = _halfEdges.size() + 2;
-        newHalfEdgeCtoM.toVertex = newVertexIdx;
+        halfedge_t& halfEdgeCtoM = halfEdgeCtoB;
+        halfEdgeCtoM.edgeIndex = edgeHalfEdgesSize + 1;
+        halfEdgeCtoM.toVertex = vertexHalfEdgesSize;
 
-        // 반대쪽 존재한다고 가정
-        halfedge_t newHalfEdgeMtoD;
-        newHalfEdgeMtoD.edgeIndex = _edgeHalfEdges.size() + 2;
-        newHalfEdgeMtoD.faceIndex = _faceHalfEdges.size() + 1;
-        newHalfEdgeMtoD.nextHlafEdge = _halfEdges[_halfEdges[h.oppositeHalfEdge].nextHlafEdge].nextHlafEdge;
-        newHalfEdgeMtoD.oppositeHalfEdge = _halfEdges.size() + 5;
-        newHalfEdgeMtoD.toVertex = _halfEdges[_halfEdges[h.oppositeHalfEdge].nextHlafEdge].toVertex;
+        halfedge_t& halfEdgeMtoC = halfEdgeBtoC;
+        halfEdgeMtoC.edgeIndex = edgeHalfEdgesSize + 1;
 
-        halfedge_t newHalfEdgeDtoM;
-        newHalfEdgeDtoM.edgeIndex = _edgeHalfEdges.size() + 2;
-        newHalfEdgeDtoM.faceIndex = _halfEdges[h.oppositeHalfEdge].faceIndex;
-        newHalfEdgeDtoM.nextHlafEdge = h.oppositeHalfEdge;
-        newHalfEdgeDtoM.oppositeHalfEdge = _halfEdges.size() + 4;
-        newHalfEdgeDtoM.toVertex = newVertexIdx;
+        newHalfEdgeMtoB.edgeIndex = edgeIdx;
+        newHalfEdgeMtoB.oppositeHalfEdge = halfEdgesSize;
+        newHalfEdgeMtoB.toVertex = halfEdgeCtoB.toVertex;
 
-        h.nextHlafEdge = _halfEdges.size();
-        h.toVertex = newVertexIdx;
-
-        // ca
-
-        halfedge_t& halfEdgeCtoA = _halfEdges[newHalfEdgeMtoC.nextHlafEdge];
-        halfEdgeCtoA.nextHlafEdge = _halfEdges.size() + 1;
-
-        if (oppositeflag)
-        {
-            halfEdgeBtoD->nextHlafEdge = _halfEdges.size() + 5;
-            halfEdgeDtoC->nextHlafEdge = _halfEdges.size() + 3;
-        }
-
+        _halfEdges.push_back(newHalfEdgeBtoM);
+        _halfEdges.push_back(newHalfEdgeMtoB);
         _halfEdges.push_back(newHalfEdgeMtoA);
         _halfEdges.push_back(newHalfEdgeAtoM);
-        _halfEdges.push_back(newHalfEdgeMtoC);
-        _halfEdges.push_back(newHalfEdgeCtoM);
-        if (oppositeflag)
-        {
-            _halfEdges.push_back(newHalfEdgeMtoD);
-            _halfEdges.push_back(newHalfEdgeDtoM);
-        }
+    }
+    else
+    {
+        // edge
+        _edgeHalfEdges[edgeIdx] = halfEdgesSize;
+        _edgeHalfEdges.push_back(halfEdgeBtoC.oppositeHalfEdge);
+
+        // half edge
+        newHalfEdgeBtoM.edgeIndex = edgeIdx;
+        newHalfEdgeBtoM.faceIndex = INVALID_INDEX;
+        newHalfEdgeBtoM.oppositeHalfEdge = halfEdgesSize + 1;
+        newHalfEdgeBtoM.nextHlafEdge = halfEdgeCtoB.oppositeHalfEdge;
+        newHalfEdgeBtoM.toVertex = vertexHalfEdgesSize;
+
+
+        newHalfEdgeMtoB.edgeIndex = edgeIdx;
+        newHalfEdgeMtoB.oppositeHalfEdge = halfEdgesSize;
+        newHalfEdgeMtoB.toVertex = halfEdgeCtoB.toVertex;
+
+        halfedge_t& halfEdgeCtoM = halfEdgeCtoB;
+        halfEdgeCtoM.edgeIndex = edgeHalfEdgesSize;
+        halfEdgeCtoM.toVertex = vertexHalfEdgesSize;
+
+        halfedge_t& halfEdgeMtoC = halfEdgeBtoC;
+        halfEdgeMtoC.edgeIndex = edgeHalfEdgesSize;
+
+        _halfEdges.push_back(newHalfEdgeBtoM);
+        _halfEdges.push_back(newHalfEdgeMtoB);
+    }
+
+    edgeHalfEdgesSize = _edgeHalfEdges.size();
+    faceHalfEdgesSize = _faceHalfEdges.size();
+    halfEdgesSize = _halfEdges.size();
+
+    if (halfEdgeCtoB.faceIndex != INVALID_INDEX)
+    {
+        size_t mtobIndex = aFlag ? halfEdgesSize - 3 : halfEdgesSize - 1;
+
+        halfedge_t* halfEdgeMtoB = &(_halfEdges[mtobIndex]);
+
+        halfedge_t& halfEdgeBtoD = _halfEdges[halfEdgeMtoB->nextHlafEdge];
+        halfedge_t& halfEdgeDtoC = _halfEdges[halfEdgeBtoD.nextHlafEdge];
+
+        // face
+        _faceHalfEdges[halfEdgeCtoB.faceIndex] = _halfEdges[halfEdgeCtoB.nextHlafEdge].nextHlafEdge;
+        _faceHalfEdges.push_back(halfEdgesSize);
+
+        // edge
+        _edgeHalfEdges.push_back(halfEdgesSize);
+
+        // half edge
+        halfEdgeMtoB->faceIndex = faceHalfEdgesSize;
+        halfEdgeMtoB->nextHlafEdge = halfEdgeCtoB.nextHlafEdge;
+        
+        halfEdgeBtoD.faceIndex = faceHalfEdgesSize;
+        halfEdgeBtoD.nextHlafEdge = halfEdgesSize;
+        
+        halfedge_t newHalfEdgeDtoM;
+        newHalfEdgeDtoM.edgeIndex = edgeHalfEdgesSize;
+        newHalfEdgeDtoM.faceIndex = faceHalfEdgesSize;
+        newHalfEdgeDtoM.nextHlafEdge = mtobIndex;
+        newHalfEdgeDtoM.oppositeHalfEdge = halfEdgesSize + 1;
+        newHalfEdgeDtoM.toVertex = vertexHalfEdgesSize;
+
+        halfedge_t newHalfEdgeMtoD;
+        newHalfEdgeMtoD.edgeIndex = edgeHalfEdgesSize;
+        newHalfEdgeMtoD.faceIndex = halfEdgeCtoB.faceIndex;
+        newHalfEdgeMtoD.nextHlafEdge = _halfEdges[halfEdgeDtoC.oppositeHalfEdge].oppositeHalfEdge;
+        newHalfEdgeMtoD.oppositeHalfEdge = halfEdgesSize;
+        newHalfEdgeMtoD.toVertex = _halfEdges[_halfEdges[newHalfEdgeMtoD.nextHlafEdge].oppositeHalfEdge].toVertex;
+
+        halfEdgeCtoM.nextHlafEdge = halfEdgesSize + 1;
+
+        _halfEdges.push_back(newHalfEdgeDtoM);
+        _halfEdges.push_back(newHalfEdgeMtoD);
+    }
+    else
+    {
+        size_t mtobIndex = aFlag ? halfEdgesSize - 3 : halfEdgesSize - 1;
+
+        halfedge_t* halfEdgeMtoB = &(_halfEdges[mtobIndex]);
+
+        halfEdgeMtoB->faceIndex = INVALID_INDEX;
+        halfEdgeMtoB->nextHlafEdge = nextCtoBHalfEdgeIdx;
+
+        halfEdgeCtoM.faceIndex = INVALID_INDEX;
+        halfEdgeCtoM.nextHlafEdge = _halfEdges[halfEdgeMtoB->oppositeHalfEdge].oppositeHalfEdge;
+
+        halfEdgeMtoB->faceIndex = INVALID_INDEX;
     }
 }
 
