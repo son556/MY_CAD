@@ -1,81 +1,98 @@
-﻿#pragma once
+#pragma once
 
 #include <vector>
 #include <map>
-#include <cstddef>
 #include <GLM/glm.hpp>
-
-constexpr size_t INVALID_INDEX = static_cast<size_t>(-1);
 
 struct edge_t
 {
-    size_t start = INVALID_INDEX;
-    size_t end = INVALID_INDEX;
+    int start = -1;
+    int end = -1;
 };
 
 struct triangle_t
 {
-    size_t vertices[3] = { INVALID_INDEX, INVALID_INDEX, INVALID_INDEX };
+    int vertices[3] = { -1, -1, -1 };
 };
 
 
 class HalfEdge
 {
 public:
-    struct halfedge_t
-    {
-        size_t toVertex = INVALID_INDEX;
-        size_t faceIndex = INVALID_INDEX;
-        size_t edgeIndex = INVALID_INDEX;
-        size_t oppositeHalfEdge = INVALID_INDEX;
-        size_t nextHlafEdge = INVALID_INDEX;
-    };
-
-    bool CheckValidManifold(const std::vector<size_t>& indices);
+    bool CheckValidManifold(const std::vector<int>& indices);
     void preProcess(
         triangle_t* triangles,
-        size_t triangleSize,
+        int triangleSize,
         std::vector<edge_t>& outEdges
     );
 
     void Build(
-        const size_t numVertices,
-        const size_t numTriangles,
+        const int numVertices,
+        const int numTriangles,
         const triangle_t* triangles,
-        const size_t numEdges,
-        const edge_t* edges
+        const int numEdges,
+        const edge_t* edges,
+        const std::vector<glm::vec3>& points
     );
 
-    void GetBoundaryVertices(size_t boundaryVertexIndex, std::vector<size_t>& outBoundaryVertexIndices) const;
-    void GetVertexIndicesOneRing(size_t vertexIndex, std::vector<size_t>& outRingVertexIndices) const;
-    void GetFaceVertices(size_t faceIndex, std::vector<size_t>& outFaceVertexIndices) const;
-    void GetFaceIndicesOneRing(size_t vertexIndex, std::vector<size_t>& outFaceIndices) const;
-    void GetAdjFaceIndices(size_t faceIndex, std::vector<size_t>& outFaceIndices) const;
-    glm::vec3 GetVertexNormal(size_t vertexIndex) const;
-    glm::vec3 GetFaceNormal(size_t faceIndex) const;
+    void SplitEdge(int edgeIdx, float t);
 
-    inline bool IsBoundaryVertex(size_t vertexIndex) const
+    void GetBoundaryVertices(int boundaryVertexIndex, std::vector<int>& outBoundaryVertexIndices) const;
+    void GetVertexIndicesOneRing(int vertexIndex, std::vector<int>& outRingVertexIndices) const;
+    void GetFaceVertices(int faceIndex, std::vector<int>& outFaceVertexIndices) const;
+    void GetFaceIndicesOneRing(int vertexIndex, std::vector<int>& outFaceIndices) const;
+    void GetAdjFaceIndices(int faceIndex, std::vector<int>& outFaceIndices) const;
+    glm::vec3 GetVertexNormal(int vertexIndex) const;
+    glm::vec3 GetFaceNormal(int faceIndex) const;
+
+    inline bool IsBoundaryVertex(int vertexIndex) const
     {
-        size_t hei = _vertexHalfEdges[vertexIndex];
-        return (_halfEdges[hei].faceIndex == INVALID_INDEX || _halfEdges[_halfEdges[hei].oppositeHalfEdge].faceIndex == INVALID_INDEX);
+        int hei = _vertexHalfEdges[vertexIndex];
+        return (_halfEdges[hei].faceIndex == -1 || _halfEdges[_halfEdges[hei].oppositeHalfEdge].faceIndex == -1);
     }
 
-    inline bool IsBoundaryEdge(size_t edgeIndex) const
+    inline bool IsBoundaryEdge(int edgeIndex) const
     {
-        size_t hei = _edgeHalfEdges[edgeIndex];
-        return (_halfEdges[hei].faceIndex == INVALID_INDEX || _halfEdges[_halfEdges[hei].oppositeHalfEdge].faceIndex == INVALID_INDEX);
+        int hei = _edgeHalfEdges[edgeIndex];
+        return (_halfEdges[hei].faceIndex == -1 || _halfEdges[_halfEdges[hei].oppositeHalfEdge].faceIndex == -1);
     }
 
-    void SplitEdge(size_t edgeIdx, float t);
+    inline int GetNumVertices()  const { return (int)_vertexHalfEdges.size(); }
+    inline int GetNumFaces()     const { return (int)_faceHalfEdges.size(); }
+    inline int GetNumEdges()     const { return (int)_edgeHalfEdges.size(); }
+    inline int GetNumHalfEdges() const { return (int)_halfEdges.size(); }
+
+    inline int GetHalfEdgeFromVertex(int vi) const { return _vertexHalfEdges[vi]; }
+    inline int GetHalfEdgeFromFace(int fi)   const { return _faceHalfEdges[fi]; }
+    inline int GetHalfEdgeFromEdge(int ei)   const { return _edgeHalfEdges[ei]; }
+
+    inline int ToVertex(int hei)   const { return _halfEdges[hei].toVertex; }
+    inline int FromVertex(int hei) const { return _halfEdges[_halfEdges[hei].oppositeHalfEdge].toVertex; }
+    inline int Face(int hei)       const { return _halfEdges[hei].faceIndex; }
+    inline int Edge(int hei)       const { return _halfEdges[hei].edgeIndex; }
+    inline int Opposite(int hei)   const { return _halfEdges[hei].oppositeHalfEdge; }
+    inline int Next(int hei)       const { return _halfEdges[hei].nextHlafEdge; }
+    inline int Prev(int hei)       const { return _halfEdges[_halfEdges[hei].nextHlafEdge].nextHlafEdge; }
+
+    inline glm::vec3 GetPoint(int vi) const { return _points[vi]; }
 
 private:
+    struct halfedge_t
+    {
+        int toVertex = -1;
+        int faceIndex = -1;
+        int edgeIndex = -1;
+        int oppositeHalfEdge = -1;
+        int nextHlafEdge = -1;
+    };
+
     void Clear();
-    glm::vec3 GetFaceNormalNotNormalized(size_t faceIndex) const;
+    glm::vec3 GetFaceNormalNotNormalized(int faceIndex) const;
 
     std::vector<glm::vec3> _points;
-    std::vector<size_t> _vertexHalfEdges;
-    std::vector<size_t> _faceHalfEdges;
-    std::vector<size_t> _edgeHalfEdges;
+    std::vector<int> _vertexHalfEdges;
+    std::vector<int> _faceHalfEdges;
+    std::vector<int> _edgeHalfEdges;
     std::vector<halfedge_t> _halfEdges;
-    std::map<std::pair<size_t, size_t>, size_t> _edgeToHalfEdge;
+    std::map<std::pair<int, int>, int> _edgeToHalfEdge;
 };
