@@ -36,6 +36,7 @@ public:
     );
 
     void SplitEdge(int edgeIdx, float t);
+    void FlipEdge(int edgeIdx);
 
     void GetBoundaryVertices(int boundaryVertexIndex, std::vector<int>& outBoundaryVertexIndices) const;
     void GetVertexIndicesOneRing(int vertexIndex, std::vector<int>& outRingVertexIndices) const;
@@ -87,6 +88,8 @@ private:
     };
 
     void Clear();
+
+    bool FindEdge(int startVertexIdx, int endVertexIdx);
     glm::vec3 GetFaceNormalNotNormalized(int faceIndex) const;
 
     std::vector<glm::vec3> _points;

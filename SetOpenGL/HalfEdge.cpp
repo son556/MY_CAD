@@ -450,12 +450,46 @@ void HalfEdge::SplitEdge(int edgeIdx, float t)
     }
 }
 
+void HalfEdge::FlipEdge(int edgeIdx)
+{
+    halfedge_t& halfEdge = _halfEdges[_edgeHalfEdges[edgeIdx]];
+    halfedge_t& halfEdgeOpp = _halfEdges[halfEdge.oppositeHalfEdge];
+
+    if (halfEdge.faceIndex == -1 || halfEdgeOpp.faceIndex == -1)
+        return;
+    
+    int vertexD = _halfEdges[halfEdge.nextHlafEdge].toVertex;
+    int vertexB = _halfEdges[halfEdgeOpp.nextHlafEdge].toVertex;
+
+    halfEdge.toVertex = vertexD;
+    halfEdgeOpp.toVertex = vertexB;
+
+    // TODO
+}
+
 void HalfEdge::Clear()
 {
     _vertexHalfEdges.clear();
     _faceHalfEdges.clear();
     _edgeHalfEdges.clear();
     _halfEdges.clear();
+}
+
+bool HalfEdge::FindEdge(int startVertexIdx, int endVertexIdx)
+{
+    halfedge_t* nowEdge = &_halfEdges[_vertexHalfEdges[startVertexIdx]];
+    int end = nowEdge->toVertex;
+    if (end == endVertexIdx)
+        return true;
+
+    nowEdge = &_halfEdges[_halfEdges[nowEdge->oppositeHalfEdge].nextHlafEdge];
+    while (nowEdge->toVertex != end)
+    {
+        if (nowEdge->toVertex == endVertexIdx)
+            return true;
+        nowEdge = &_halfEdges[_halfEdges[nowEdge->oppositeHalfEdge].nextHlafEdge];
+    }
+    return false;
 }
 
 glm::vec3 HalfEdge::GetFaceNormalNotNormalized(int faceIndex) const
